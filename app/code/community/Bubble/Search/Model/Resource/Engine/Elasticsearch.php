@@ -401,13 +401,13 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
     /**
      * Prepares query response.
      *
-     * @param Elastica_ResultSet $response
+     * @param Elastica\ResultSet $response
      * @return array
      */
     protected function _prepareQueryResponse($response)
     {
-        /* @var $response Elastica_ResultSet */
-        if (!$response instanceof Elastica_ResultSet || $response->getResponse()->hasError() || !$response->count()) {
+        /* @var $response Elastica\ResultSet */
+        if (!$response instanceof Elastica\ResultSet || $response->getResponse()->hasError() || !$response->count()) {
             return array();
         }
         $this->_lastNumFound = (int) $response->getTotalHits();
@@ -587,11 +587,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
 
         $data = $this->_client->search($searchConditions, $searchParams, $type);
 
-        if (!$data instanceof Elastica_ResultSet) {
+        if (!$data instanceof Elastica\ResultSet) {
             return array();
         }
 
-        /* @var $data Elastica_ResultSet */
+        /* @var $data Elastica\ResultSet */
         if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
             $result = array(
                 'ids' => $this->_prepareQueryResponse($data),
