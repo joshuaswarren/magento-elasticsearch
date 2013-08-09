@@ -84,7 +84,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                     $query->setTerm('store_id', $storeId);
                     $response = $this->request($path, Elastica\Request::DELETE, $query->toArray());
 
-                    return new Elastica\ResultSet($response);
+                    return new Elastica\ResultSet($response, new Elastica\Query($query));
                 } else {
                     // delete docs from specific store with _id in $id
                     $ids = (array) $id;
