@@ -10,7 +10,9 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
 {
     const CACHE_INDEX_PROPERTIES_ID = 'elasticsearch_index_properties';
     
-    protected $nonTextSourceModels = array();
+    protected $nonTextSourceModels = array(
+        'tax/class_source_product'
+    );
     
     /**
      * Initializes search engine.
