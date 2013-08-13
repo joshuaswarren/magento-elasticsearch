@@ -128,7 +128,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
                             $source->setAttribute($attribute);
                             $labels = array();
                             foreach ($options as $option) {
-                                $labels[] = $source->getOptionText($option);
+                                $label = $source->getOptionText($option);
+                                if (is_array($label)) {
+                                    $label = isset($label['label']) ? $label['label'] : $option;
+                                }
+                                $labels[] = $label;
                             }
 
                             // store labels into product
