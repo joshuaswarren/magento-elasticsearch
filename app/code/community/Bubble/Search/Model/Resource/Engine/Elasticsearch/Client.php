@@ -6,7 +6,7 @@
  * @package Bubble_Search
  * @author Johann Reinke <johann@bubblecode.net>
  */
-class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_Client
+class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\Client
 {
     /**
      * @var string Index name.
@@ -80,11 +80,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
                 if (empty($id)) {
                     // delete ALL docs from specific store
                     $path = sprintf('%s/%s/_query', $this->_index, $type);
-                    $query = new Elastica_Query_Term();
+                    $query = new Elastica\Query\Term();
                     $query->setTerm('store_id', $storeId);
-                    $response = $this->request($path, Elastica_Request::DELETE, $query->toArray());
+                    $response = $this->request($path, Elastica\Request::DELETE, $query->toArray());
 
-                    return new Elastica_ResultSet($response);
+                    return new Elastica\ResultSet($response, new Elastica\Query($query));
                 } else {
                     // delete docs from specific store with _id in $id
                     $ids = (array) $id;
@@ -107,17 +107,17 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
      * @param string $id
      * @param array $data
      * @param string $type
-     * @return Elastica_Document
+     * @return Elastica\Document
      */
     public function createDoc($id = '', array $data = array(), $type = 'product')
     {
-        return new Elastica_Document($id, $data, $type, $this->_index);
+        return new Elastica\Document($id, $data, $type, $this->_index);
     }
 
     /**
      * Deletes index.
      *
-     * @return bool|Elastica_Response
+     * @return bool|Elastica\Response
      */
     public function deleteIndex()
     {
@@ -225,7 +225,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
      * @param string $q
      * @param array $params
      * @param string $type
-     * @return Elastica_ResultSet
+     * @return Elastica\ResultSet
      * @throws Exception
      */
     public function search($q, $params = array(), $type = 'product')
@@ -235,11 +235,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
             if (empty($params['filters'])) {
                 $params['filters'] = '*';
             }
-            $queryFilter = new Elastica_Filter_Query(new Elastica_Query_QueryString($params['filters']));
+            $queryFilter = new Elastica\Filter\Query(new Elastica\Query\QueryString($params['filters']));
             if (isset($params['range_filters']) && !empty($params['range_filters'])) {
-                $andFilter = new Elastica_Filter_And();
+                $andFilter = new Elastica\Filter\BoolAnd();
                 $andFilter->addFilter($queryFilter);
-                $filter = new Elastica_Filter_Range();
+                $filter = new Elastica\Filter\Range();
                 foreach ($params['range_filters'] as $field => $rangeFilter) {
                     $filter->addField($field, $rangeFilter);
                 }
@@ -248,13 +248,13 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
             }
 
             if (empty($q)) {
-                $baseQuery = new Elastica_Query_MatchAll();
+                $baseQuery = new Elastica\Query\MatchAll();
             } else {
-                $baseQuery = new Elastica_Query_Bool();
+                $baseQuery = new Elastica\Query\Bool();
 
                 if ($this->isFuzzyQueryEnabled()) {
                     $fields = $this->_getSearchFields(true, $q);
-                    $queryFuzzy = new Elastica_Query_FuzzyLikeThis();
+                    $queryFuzzy = new Elastica\Query\FuzzyLikeThis();
                     $queryFuzzy->addFields($fields);
                     $queryFuzzy->setLikeText($q);
                     $queryFuzzy->setMinSimilarity($this->getFuzzyMinSimilarity());
@@ -264,19 +264,19 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
                     $baseQuery->addShould($queryFuzzy);
                 }
 
-                $queryString = new Elastica_Query_QueryString($q);
+                $queryString = new Elastica\Query\QueryString($q);
                 $queryString->setFields($this->_getSearchFields(false, $q));
                 $baseQuery->addShould($queryString);
             }
 
-            $filteredQuery = new Elastica_Query_Filtered($baseQuery, $queryFilter);
-            $query = Elastica_Query::create($filteredQuery)
+            $filteredQuery = new Elastica\Query\Filtered($baseQuery, $queryFilter);
+            $query = Elastica\Query::create($filteredQuery)
                 ->setFrom($params['offset'])
                 ->setLimit($params['limit']);
 
             if (isset($params['facets']['queries']) && !empty($params['facets']['queries'])) {
                 foreach ($params['facets']['queries'] as $facetQuery) {
-                    $facet = new Elastica_Facet_Query($facetQuery);
+                    $facet = new Elastica\Facet\Query($facetQuery);
                     $facet->setParam('query_string', array('query' => $facetQuery));
                     $query->addFacet($facet);
                 }
@@ -284,7 +284,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
 
             if (isset($params['stats']['fields']) && !empty($params['stats']['fields'])) {
                 foreach ($params['stats']['fields'] as $field) {
-                    $facet = new Elastica_Facet_Statistical($field);
+                    $facet = new Elastica\Facet\Statistical($field);
                     $facet->setParam('field', $field);
                     $query->addFacet($facet);
                 }
@@ -293,7 +293,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
                     $properties = $this->_getIndexProperties();
                     foreach ($params['facets']['fields'] as $field) {
                         if (array_key_exists($field, $properties)) {
-                            $facet = new Elastica_Facet_Terms($field);
+                            $facet = new Elastica\Facet\Terms($field);
                             if ($properties[$field]['type'] == 'multi_field') {
                                 $field .= '.untouched';
                             }
@@ -307,7 +307,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
 
                 if (isset($params['facets']['ranges']) && !empty($params['facets']['ranges'])) {
                     foreach ($params['facets']['ranges'] as $field => $ranges) {
-                        $facet = new Elastica_Facet_Range($field);
+                        $facet = new Elastica\Facet\Range($field);
                         $facet->setField($field);
                         $facet->setRanges($ranges);
                         $query->addFacet($facet);
@@ -692,7 +692,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica_
             } else {
                 $index->setSettings($indexSettings);
             }
-            $mapping = new Elastica_Type_Mapping();
+            $mapping = new Elastica\Type\Mapping();
             $mapping->setType($index->getType('product'));
             $mapping->setProperties($this->_getIndexProperties());
             $mapping->send();

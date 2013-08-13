@@ -1,0 +1,8 @@
+# tmp and backup files
+*~
+
+# composer
+/vendor/
+
+# ide
+/nbproject/

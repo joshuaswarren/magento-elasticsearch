@@ -1,0 +1,19 @@
+{
+    "name": "baranga/magento-elasticsearch",
+    "description": "elasticsearch as magento fulltext search egine",
+    "type": "magento-module",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Johann Reinke",
+            "homepage": "http://www.bubblecode.net/"
+        },
+        {
+            "name": "baranga",
+            "homepage": "https://github.com/baranga"
+        }
+    ],
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}

@@ -9,7 +9,11 @@
 class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Model_Resource_Engine_Abstract
 {
     const CACHE_INDEX_PROPERTIES_ID = 'elasticsearch_index_properties';
-
+    
+    protected $nonTextSourceModels = array(
+        'tax/class_source_product'
+    );
+    
     /**
      * Initializes search engine.
      *
@@ -96,25 +100,48 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
                     $value = array_values(array_filter(array_unique($value)));
                 }
                 if (array_key_exists($key, $searchables)) {
-                    /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
                     $attribute = $searchables[$key];
+                    /* @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
                     if ($attribute->getBackendType() == 'datetime') {
                         foreach ($value as &$date) {
                             $date = $this->_getDate($store->getId(), $date);
                         }
                         unset($date);
                     } elseif ($attribute->usesSource() && !empty($value)) {
+                        // extract options
+                        $firstValue = is_array($value) ? $value[0] : $value;
                         if ($attribute->getFrontendInput() == 'multiselect') {
-                            $value = explode(',', is_array($value) ? $value[0] : $value);
-                        } elseif ($helper->isAttributeUsingOptions($attribute)) {
-                            $val = is_array($value) ? $value[0] : $value;
+                            $options = explode(',', $firstValue);
+                            $value   = $options;
+                        } else {
+                            $options = array($firstValue);
+                        }
+                        
+                        // translate options to labels
+                        $sourceModel = $attribute->getSourceModel();
+                        $source = null;
+                        if (!in_array($sourceModel, $this->nonTextSourceModels)) {
+                            $source = Mage::getModel($sourceModel)->setAttribute($attribute);
+                        }
+                        if ($source !== null &&
+                            $source instanceof Mage_Eav_Model_Entity_Attribute_Source_Interface
+                        ) {
+                            /* @var $source Mage_Eav_Model_Entity_Attribute_Source_Abstract */
+                            $source->setAttribute($attribute);
+                            $labels = array();
+                            foreach ($options as $option) {
+                                $label = $source->getOptionText($option);
+                                if (is_array($label)) {
+                                    $label = isset($label['label']) ? $label['label'] : $option;
+                                }
+                                $labels[] = $label;
+                            }
+
+                            // store labels into product
                             if (!isset($data['_options'])) {
                                 $data['_options'] = array();
                             }
-                            $option = $attribute->setStoreId($storeId)
-                                ->getFrontend()
-                                ->getOption($val);
-                            $data['_options'][] = $option;
+                            $data['_options'] = array_merge($data['_options'], $labels);
                         }
                     }
                 }
@@ -134,6 +161,10 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
             }
             unset($value);
             $data['store_id'] = $store->getId();
+            
+            if (isset($data['_options'])) {
+                $data['_options'] = array_unique($data['_options']);
+            }
         }
         unset($data);
 
@@ -401,13 +432,13 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
     /**
      * Prepares query response.
      *
-     * @param Elastica_ResultSet $response
+     * @param Elastica\ResultSet $response
      * @return array
      */
     protected function _prepareQueryResponse($response)
     {
-        /* @var $response Elastica_ResultSet */
-        if (!$response instanceof Elastica_ResultSet || $response->getResponse()->hasError() || !$response->count()) {
+        /* @var $response Elastica\ResultSet */
+        if (!$response instanceof Elastica\ResultSet || $response->getResponse()->hasError() || !$response->count()) {
             return array();
         }
         $this->_lastNumFound = (int) $response->getTotalHits();
@@ -587,11 +618,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
 
         $data = $this->_client->search($searchConditions, $searchParams, $type);
 
-        if (!$data instanceof Elastica_ResultSet) {
+        if (!$data instanceof Elastica\ResultSet) {
             return array();
         }
 
-        /* @var $data Elastica_ResultSet */
+        /* @var $data Elastica\ResultSet */
         if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
             $result = array(
                 'ids' => $this->_prepareQueryResponse($data),
