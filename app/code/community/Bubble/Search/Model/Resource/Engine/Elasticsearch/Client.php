@@ -403,19 +403,33 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                     /** @var $store Mage_Core_Model_Store */
                     $locale = $helper->getLocaleCode($store);
                     $key = $helper->getAttributeFieldName($attribute, $locale);
+                    
                     $type = $this->_getAttributeType($attribute);
-                    if ($type !== 'string') {
+                    $weight = $attribute->getSearchWeight();
+                    $weight = $weight > 0 ? $weight : 1;
+                        
+                    if ($helper->isAttributeUsingIndexableSource($attribute)) {
                         $properties[$key] = array(
-                            'type' => $type,
+                            'type' => 'object',
+                            'properties' => array(
+                                'value' => array(
+                                    'type' => $type,
+                                    'boost' => $weight,
+                                ),
+                                'label' => array(
+                                    'type' => 'string',
+                                    'boost' => $weight,
+                                )
+                            ),
                         );
-                    } else {
-                        $weight = $attribute->getSearchWeight();
+                        
+                    } elseif ($type === 'string') {
                         $properties[$key] = array(
                             'type' => 'multi_field',
                             'fields' => array(
                                 $key => array(
                                     'type' => $type,
-                                    'boost' => $weight > 0 ? $weight : 1,
+                                    'boost' => $weight,
                                 ),
                                 'untouched' => array(
                                     'type' => $type,
@@ -430,6 +444,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                                 'boost' => $attribute->getSearchWeight(),
                             );
                         }
+                        
+                    } else {
+                        $properties[$key] = array(
+                            'type' => $type,
+                        );
                     }
                 }
             }

@@ -49,7 +49,11 @@ class Bubble_Search_Helper_Data extends Mage_Core_Helper_Abstract
         'datetime',
         'decimal',
     );
-
+    
+    protected $nonTextSourceModels = array(
+        'tax/class_source_product'
+    );
+    
     /**
      * Returns attribute field name (localized if needed).
      *
@@ -445,6 +449,35 @@ class Bubble_Search_Helper_Data extends Mage_Core_Helper_Abstract
         return $attribute->usesSource() &&
                $attribute->getBackendType() == 'int' &&
                $model instanceof Mage_Eav_Model_Entity_Attribute_Source_Table;
+    }
+    
+    /**
+     * Check if attribute uses as source model which provides indexable text labels.
+     * 
+     * @param Mage_Eav_Model_Attribute $attribute
+     * @return bool
+     */
+    public function isAttributeUsingIndexableSource(Mage_Eav_Model_Entity_Attribute $attribute)
+    {
+        if (!$attribute->usesSource()) {
+            return false;
+        }
+        
+        $sourceModel = $attribute->getSourceModel();
+        if (in_array($sourceModel, $this->nonTextSourceModels)) {
+            return false;
+        }
+        
+        $source = Mage::getModel($sourceModel);
+        if ($source === null ||
+            !($source instanceof Mage_Eav_Model_Entity_Attribute_Source_Interface)
+        ) {
+            return false;
+        }
+        
+        // maybe check the labels?
+        
+        return true;
     }
 
     /**

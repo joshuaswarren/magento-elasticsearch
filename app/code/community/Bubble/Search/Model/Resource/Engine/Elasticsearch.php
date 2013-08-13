@@ -118,16 +118,8 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
                         }
                         
                         // translate options to labels
-                        $sourceModel = $attribute->getSourceModel();
-                        $source = null;
-                        if (!in_array($sourceModel, $this->nonTextSourceModels)) {
-                            $source = Mage::getModel($sourceModel)->setAttribute($attribute);
-                        }
-                        if ($source !== null &&
-                            $source instanceof Mage_Eav_Model_Entity_Attribute_Source_Interface
-                        ) {
-                            /* @var $source Mage_Eav_Model_Entity_Attribute_Source_Abstract */
-                            $source->setAttribute($attribute);
+                        if ($helper->isAttributeUsingIndexableSource($attribute)) {
+                            $source = Mage::getModel($attribute->getSourceModel())->setAttribute($attribute);
                             $labels = array();
                             foreach ($options as $option) {
                                 $label = $source->getOptionText($option);
@@ -136,12 +128,10 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch extends Bubble_Search_Mo
                                 }
                                 $labels[] = $label;
                             }
-
-                            // store labels into product
-                            if (!isset($data['_options'])) {
-                                $data['_options'] = array();
-                            }
-                            $data['_options'] = array_merge($data['_options'], $labels);
+                            $value = array(
+                                'value' => $options,
+                                'label' => $labels,
+                            );
                         }
                     }
                 }
