@@ -98,6 +98,7 @@
         <catalog>
             <search>
                 <elasticsearch_enable_debug_mode>0</elasticsearch_enable_debug_mode>
+                <elasticsearch_enable_logging>0</elasticsearch_enable_logging>
                 <elasticsearch_servers>127.0.0.1:9200</elasticsearch_servers>
                 <elasticsearch_timeout>30</elasticsearch_timeout>
                 <elasticsearch_index>magento</elasticsearch_index>
