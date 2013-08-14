@@ -39,4 +39,9 @@ class Bubble_Search_Helper_Elasticsearch extends Bubble_Search_Helper_Data
     {
         return Mage::getStoreConfigFlag('catalog/search/elasticsearch_enable_options_search');
     }
+    
+    public function isSearchOnCategoriesEnabled()
+    {
+        return Mage::getStoreConfigFlag('catalog/search/elasticsearch_enable_category_search');
+    }
 }

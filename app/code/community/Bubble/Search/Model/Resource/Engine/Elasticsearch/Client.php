@@ -687,6 +687,10 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
             // Search on options labels too
             $fields[] = '_options';
         }
+        
+        if ($this->_getHelper()->isSearchOnCategoriesEnabled()) {
+            $fields[] = 'category_names';
+        }
 
         return $fields;
     }

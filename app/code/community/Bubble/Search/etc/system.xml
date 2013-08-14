@@ -119,6 +119,17 @@ For example, in a N shards with 2 replicas index, there will have to be at least
                             <show_in_store>1</show_in_store>
                             <depends><engine>bubble_search/engine_elasticsearch</engine></depends>
                         </elasticsearch_enable_options_search>
+                        <elasticsearch_enable_category_search translate="label comment">
+                            <label>Enable Search on Category Names</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>If enabled, will also search on category names.</comment>
+                            <sort_order>61</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><engine>bubble_search/engine_elasticsearch</engine></depends>
+                        </elasticsearch_enable_category_search>
                         <elasticsearch_enable_icu_folding translate="label comment">
                             <label>Enable ICU Folding Token Filter</label>
                             <frontend_type>select</frontend_type>

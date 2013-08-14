@@ -106,6 +106,7 @@
                 <elasticsearch_number_of_replicas>0</elasticsearch_number_of_replicas>
                 <elasticsearch_facets_max_size>50</elasticsearch_facets_max_size>
                 <elasticsearch_enable_options_search>1</elasticsearch_enable_options_search>
+                <elasticsearch_enable_category_search>0</elasticsearch_enable_category_search>
                 <elasticsearch_enable_icu_folding>0</elasticsearch_enable_icu_folding>
                 <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
                 <elasticsearch_fuzzy_min_similarity>0.7</elasticsearch_fuzzy_min_similarity>
