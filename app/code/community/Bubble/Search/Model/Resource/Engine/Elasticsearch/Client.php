@@ -320,6 +320,14 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                     $query->addSort($sort);
                 }
             }
+            
+            $this->_getHelper()->log(
+                sprintf(
+                    'search (%s/%s): %s',
+                    $this->_index, $type, json_encode($query->toArray())
+                ),
+                Zend_Log::INFO
+            );
 
             $result = $this->getIndex($this->_index)
                 ->getType($type)
@@ -668,6 +676,8 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                         $fields[] = $key . '.' . $field;
                     }
                 }
+            } elseif ($property['type'] == 'object') {
+                $fields[] = $key . '.label';
             } elseif (0 !== strpos($key, 'sort_by_')) {
                 $fields[] = $key;
             }
