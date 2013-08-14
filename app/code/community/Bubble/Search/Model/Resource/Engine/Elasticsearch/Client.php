@@ -681,6 +681,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
             } elseif ($property['type'] == 'object') {
                 if ($isSearchOnOptionsEnabled) {
                     $fields[] = $key . '.label';
+                }
             } elseif (0 !== strpos($key, 'sort_by_')) {
                 $fields[] = $key;
             }
