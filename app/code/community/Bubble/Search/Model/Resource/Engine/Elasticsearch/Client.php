@@ -648,6 +648,8 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
      */
     protected function _getSearchFields($onlyFuzzy = false, $q = '')
     {
+        $isSearchOnOptionsEnabled = $this->_getHelper()->shouldSearchOnOptions();
+        
         $properties = $this->_getIndexProperties();
         $fields = array();
         foreach ($properties as $key => $property) {
@@ -677,15 +679,11 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                     }
                 }
             } elseif ($property['type'] == 'object') {
-                $fields[] = $key . '.label';
+                if ($isSearchOnOptionsEnabled) {
+                    $fields[] = $key . '.label';
             } elseif (0 !== strpos($key, 'sort_by_')) {
                 $fields[] = $key;
             }
-        }
-
-        if ($this->_getHelper()->shouldSearchOnOptions()) {
-            // Search on options labels too
-            $fields[] = '_options';
         }
         
         if ($this->_getHelper()->isSearchOnCategoriesEnabled()) {
