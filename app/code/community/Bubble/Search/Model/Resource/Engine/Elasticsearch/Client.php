@@ -414,14 +414,29 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                     
                     $type = $this->_getAttributeType($attribute);
                     $indexableSource = $helper->isAttributeUsingIndexableSource($attribute);
-                    if ($type === 'string' || $indexableSource) {
-                        $weight = max((int) $attribute->getSearchWeight(), 1);
+                    $weight = max((int) $attribute->getSearchWeight(), 1);
+                    
+                    if ($indexableSource) {
+                        $property = array(
+                            'type' => 'object',
+                            'properties' => array(
+                                'value' => array(
+                                    'type' => 'string',
+                                    'boost' => $weight,
+                                ),
+                                'label' => array(
+                                    'type' => 'string',
+                                    'boost' => $weight,
+                                ),
+                            ),
+                        );
+                        $properties[$key] = $property;
                         
-                        $mainField = $indexableSource ? 'label' : $key;
+                    } elseif ($type === 'string') {
                         $property = array(
                             'type' => 'multi_field',
                             'fields' => array(
-                                $mainField => array(
+                                $key => array(
                                     'type' => 'string',
                                     'boost' => $weight,
                                 ),
@@ -438,20 +453,6 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                                 'boost' => $weight,
                             );
                         }
-                        
-                        if ($helper->isAttributeUsingIndexableSource($attribute)) {
-                            $property = array(
-                                'type' => 'object',
-                                'properties' => array(
-                                    'value' => array(
-                                        'type' => 'string',
-                                        'boost' => $weight,
-                                    ),
-                                    'label' => $property
-                                ),
-                            );
-                        }
-                        
                         $properties[$key] = $property;
                         
                     } else {
@@ -681,15 +682,7 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                 }
             } elseif ($property['type'] == 'object') {
                 if ($isSearchOnOptionsEnabled) {
-                    if (!$onlyFuzzy) {
-                        foreach (array_keys($property['properties']['label']['fields']) as $field) {
-                            if ($field != 'untouched') {
-                                $fields[] = $key . '.label.' . $field;
-                            }
-                        }
-                    } else {
-                        $fields[] = $key . '.label';
-                    }
+                    $fields[] = $key . '.label';
                 }
             } elseif (0 !== strpos($key, 'sort_by_')) {
                 $fields[] = $key;
