@@ -413,45 +413,46 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                     $key = $helper->getAttributeFieldName($attribute, $locale);
                     
                     $type = $this->_getAttributeType($attribute);
-                    $weight = $attribute->getSearchWeight();
-                    $weight = $weight > 0 ? $weight : 1;
+                    $indexableSource = $helper->isAttributeUsingIndexableSource($attribute);
+                    if ($type === 'string' || $indexableSource) {
+                        $weight = max((int) $attribute->getSearchWeight(), 1);
                         
-                    if ($helper->isAttributeUsingIndexableSource($attribute)) {
-                        $properties[$key] = array(
-                            'type' => 'object',
-                            'properties' => array(
-                                'value' => array(
-                                    'type' => $type,
-                                    'boost' => $weight,
-                                ),
-                                'label' => array(
-                                    'type' => 'string',
-                                    'boost' => $weight,
-                                )
-                            ),
-                        );
-                        
-                    } elseif ($type === 'string') {
-                        $properties[$key] = array(
+                        $mainField = $indexableSource ? 'label' : $key;
+                        $property = array(
                             'type' => 'multi_field',
                             'fields' => array(
-                                $key => array(
-                                    'type' => $type,
+                                $mainField => array(
+                                    'type' => 'string',
                                     'boost' => $weight,
                                 ),
                                 'untouched' => array(
-                                    'type' => $type,
+                                    'type' => 'string',
                                     'index' => 'not_analyzed',
                                 ),
                             ),
                         );
                         foreach (array_keys($indexSettings['analysis']['analyzer']) as $analyzer) {
-                            $properties[$key]['fields'][$analyzer] = array(
+                            $property['fields'][$analyzer] = array(
                                 'type' => 'string',
                                 'analyzer' => $analyzer,
-                                'boost' => $attribute->getSearchWeight(),
+                                'boost' => $weight,
                             );
                         }
+                        
+                        if ($helper->isAttributeUsingIndexableSource($attribute)) {
+                            $property = array(
+                                'type' => 'object',
+                                'properties' => array(
+                                    'value' => array(
+                                        'type' => 'string',
+                                        'boost' => $weight,
+                                    ),
+                                    'label' => $property
+                                ),
+                            );
+                        }
+                        
+                        $properties[$key] = $property;
                         
                     } else {
                         $properties[$key] = array(
@@ -680,7 +681,15 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                 }
             } elseif ($property['type'] == 'object') {
                 if ($isSearchOnOptionsEnabled) {
-                    $fields[] = $key . '.label';
+                    if (!$onlyFuzzy) {
+                        foreach (array_keys($property['properties']['label']['fields']) as $field) {
+                            if ($field != 'untouched') {
+                                $fields[] = $key . '.label.' . $field;
+                            }
+                        }
+                    } else {
+                        $fields[] = $key . '.label';
+                    }
                 }
             } elseif (0 !== strpos($key, 'sort_by_')) {
                 $fields[] = $key;
