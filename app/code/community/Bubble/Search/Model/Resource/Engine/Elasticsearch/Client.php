@@ -204,7 +204,28 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
     {
         return (bool) $this->getConfig('enable_icu_folding');
     }
-
+    
+    /**
+     * minimum score
+     * 
+     * @link http://www.elasticsearch.org/guide/reference/api/search/min-score/
+     * @return float
+     */
+    public function getMinScore()
+    {
+        return (float) $this->getConfigValue('min_score', null);
+    }
+    
+    /**
+     * minimum score available
+     * 
+     * @return boolean
+     */
+    public function hasMinScore()
+    {
+        return $this->getConfigValue('min_score', null) !== null;
+    }
+    
     /**
      * Refreshes index
      *
@@ -319,6 +340,12 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
                 foreach ($params['sort'] as $sort) {
                     $query->addSort($sort);
                 }
+            }
+            
+            if (isset($params['min_score'])) {
+                $query->setMinScore($params['min_score']);
+            } elseif ($this->hasMinScore()) {
+                $query->setMinScore($this->getMinScore());
             }
             
             $this->_getHelper()->log(

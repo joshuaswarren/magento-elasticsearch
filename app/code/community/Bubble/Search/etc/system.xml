@@ -208,6 +208,19 @@ For example, in a N shards with 2 replicas index, there will have to be at least
                                 <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
                             </depends>
                         </elasticsearch_fuzzy_query_boost>
+                        <elasticsearch_min_score translate="label comment">
+                            <label>Min Score</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Sets the minimum score for search.</comment>
+                            <sort_order>76</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>validate-greater-than-zero validate-number</validate>
+                            <depends>
+                                <engine>bubble_search/engine_elasticsearch</engine>
+                            </depends>
+                        </elasticsearch_min_score>
                         <search_type>
                             <depends><engine>catalogsearch/fulltext_engine</engine></depends>
                         </search_type>
