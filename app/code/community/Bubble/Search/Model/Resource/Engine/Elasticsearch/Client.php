@@ -750,8 +750,10 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
             if (!$index->exists()) {
                 $indexSettings['number_of_shards'] = (int) $this->getConfig('number_of_shards');
                 $index->create($indexSettings);
-            } else {
+            } elseif ($this->_shouldReconfigureIndex()) {
+                $index->close();
                 $index->setSettings($indexSettings);
+                $index->open();
             }
             $mapping = new Elastica\Type\Mapping();
             $mapping->setType($index->getType('product'));
@@ -763,5 +765,10 @@ class Bubble_Search_Model_Resource_Engine_Elasticsearch_Client extends Elastica\
         }
 
         return $this;
+    }
+    
+    protected function _shouldReconfigureIndex()
+    {
+        return false;
     }
 }
