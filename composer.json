@@ -14,6 +14,7 @@
         }
     ],
     "require": {
-        "magento-hackathon/magento-composer-installer": "*"
+        "magento-hackathon/magento-composer-installer": "*",
+        "ruflin/Elastica": "dev-master"
     }
 }
